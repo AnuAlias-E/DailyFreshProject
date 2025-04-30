@@ -9,7 +9,7 @@ public class Location {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private int locationId;
 
     private String locationName;
 
@@ -19,11 +19,11 @@ public class Location {
 
     // Getters and Setters
     public int getLocationId() {
-        return id;
+        return locationId;
     }
 
     public void setLocationId(int locationId) {
-        this.id = locationId;
+        this.locationId = locationId;
     }
 
     public String getLocationName() {

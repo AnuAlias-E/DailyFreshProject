@@ -5,16 +5,17 @@ import jakarta.persistence.*;
 @Table(name = "stocks")
 public class Stock {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long stockId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "stock_id")
+	private int stockId;
 
     @Column(name = "available_qty")
     private Integer availableQty;
 
     // Many-to-one relationship with Item
     @ManyToOne
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "item_Id")
     private Item item;
 
     // Many-to-one relationship with Location
@@ -28,11 +29,11 @@ public class Stock {
     private City city;
 
     // Getters and Setters
-    public Long getStockId() {
+    public int getStockId() {
         return stockId;
     }
 
-    public void setStockId(Long stockId) {
+    public void setStockId(int stockId) {
         this.stockId = stockId;
     }
 

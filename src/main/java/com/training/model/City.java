@@ -39,7 +39,7 @@ public class City {
 	@EqualsAndHashCode.Include
 	@Column
 	@Nonnull
-	private int id;
+	private int cityId;
 	
 	@Column
 	@Nonnull

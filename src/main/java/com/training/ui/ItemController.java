@@ -26,8 +26,9 @@ import com.training.dto.response.ItemDeleteResponse;
 import com.training.dto.response.ItemModifyResponse;
 import com.training.dto.response.ItemSearchResponse;
 import com.training.dto.response.ItemShowAllResponse;
-
+import com.training.dto.response.StockAddRespose;
 import com.training.exception.ItemNotFoundException;
+import com.training.exception.OutOfStockException;
 import com.training.model.Item;
 import com.training.model.Stock;
 import com.training.service.ItemService;
@@ -45,16 +46,20 @@ public class ItemController {
 	public ResponseEntity<ItemAddResponse> f1(@RequestBody ItemAddRequest request) {
 		Item item1 = this.service.addNewItem(request.getItem());
 		ItemAddResponse response = new ItemAddResponse();
-		response.setStatusCode(200);
+		response.setStatusCode(201);
 		response.setDescription("Item added successfully");
 		response.setItem(item1);
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
 
-	@PostMapping("/addAllStock")
-	public ResponseEntity<String> addAllStock(@RequestBody List<Stock> stockList) {
-		stockService.saveAll(stockList);
-		return ResponseEntity.ok("Stock list added successfully");
+	@PostMapping("/addAllStock" )
+	public ResponseEntity<StockAddRespose> addAllStock(@RequestBody List<Stock> stockList) throws OutOfStockException {
+		 List<Stock> savedStockList=stockService.saveAll(stockList);
+		StockAddRespose response = new StockAddRespose();
+		response.setStatusCode(201);
+		response.setDescription("Stock list added successfully");
+		response.setStocks(savedStockList);
+		return new ResponseEntity<>(response,HttpStatus.CREATED);
 	}
 
 	@GetMapping("/showAllStock")
@@ -143,6 +148,17 @@ public class ItemController {
 			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 		}
 
+	}
+
+	@PostMapping("/stock/update")
+	public ResponseEntity<String> updateStock(@RequestParam String itemName, @RequestParam String locationName,
+			@RequestParam int quantity) throws OutOfStockException {
+		try {
+			stockService.updateStock(itemName, locationName, quantity);
+			return ResponseEntity.ok("Stock updated successfully.");
+		} catch (OutOfStockException e) {
+			return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+		}
 	}
 
 }
