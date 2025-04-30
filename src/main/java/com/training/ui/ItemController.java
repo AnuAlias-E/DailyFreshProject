@@ -16,36 +16,54 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.training.db.StockRepository;
 import com.training.dto.request.ItemAddRequest;
+import com.training.dto.request.ItemDeleteRequest;
 import com.training.dto.request.ItemModifyRequest;
 
 import com.training.dto.response.ItemAddResponse;
+import com.training.dto.response.ItemDeleteResponse;
 import com.training.dto.response.ItemModifyResponse;
 import com.training.dto.response.ItemSearchResponse;
 import com.training.dto.response.ItemShowAllResponse;
 
 import com.training.exception.ItemNotFoundException;
 import com.training.model.Item;
-
+import com.training.model.Stock;
 import com.training.service.ItemService;
+import com.training.service.StockService;
 
 @RestController
-@RequestMapping(value="/api")
+@RequestMapping(value = "/api")
 public class ItemController {
 	@Autowired
-ItemService service;
-	
-	@PostMapping(value="/add")
-	public ResponseEntity<ItemAddResponse>f1(@RequestBody ItemAddRequest request){
-		Item item1=this.service.addNewItem(request.getItem());
-		ItemAddResponse response=new ItemAddResponse();
+	ItemService service;
+	@Autowired
+	StockService stockService;
+
+	@PostMapping(value = "/addItem")
+	public ResponseEntity<ItemAddResponse> f1(@RequestBody ItemAddRequest request) {
+		Item item1 = this.service.addNewItem(request.getItem());
+		ItemAddResponse response = new ItemAddResponse();
 		response.setStatusCode(200);
 		response.setDescription("Item added successfully");
 		response.setItem(item1);
-		return new ResponseEntity<>(response,HttpStatus.CREATED);
+		return new ResponseEntity<>(response, HttpStatus.CREATED);
 	}
-	
-	@GetMapping(value ="/showAll", produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
+
+	@PostMapping("/addAllStock")
+	public ResponseEntity<String> addAllStock(@RequestBody List<Stock> stockList) {
+		stockService.saveAll(stockList);
+		return ResponseEntity.ok("Stock list added successfully");
+	}
+
+	@GetMapping("/showAllStock")
+	public ResponseEntity<List<Stock>> showAllStock() {
+		List<Stock> stockList = stockService.getAllStocks();
+		return ResponseEntity.ok(stockList);
+	}
+
+	@GetMapping(value = "/showAll", produces = { MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE })
 	public ResponseEntity<ItemShowAllResponse> f4() {
 
 		List<Item> items = this.service.getAllItems();
@@ -56,6 +74,7 @@ ItemService service;
 		return ResponseEntity.ok(response);
 
 	}
+
 	@PutMapping(value = "/modify")
 	public ResponseEntity<ItemModifyResponse> f2(@RequestBody ItemModifyRequest request) {
 
@@ -79,6 +98,7 @@ ItemService service;
 		}
 
 	}
+
 	@GetMapping(value = "/findById/{vid}")
 	public ResponseEntity<ItemSearchResponse> f3(@PathVariable(name = "vid") int vid) throws Exception {
 
@@ -95,67 +115,34 @@ ItemService service;
 			Exception exception = new ItemNotFoundException("Item Not Found");
 			throw exception;
 		}
-		
 
 	}
-//	
-//	@DeleteMapping(value = "/delete")
-//	public ResponseEntity<VisitorDeleteResponse> f5(@RequestBody VisitorDeleteRequest request) {
-//		VisitorDeleteResponse response = new VisitorDeleteResponse();
-//		Visitor visitor1 = this.service.searchVisitor(request.getVisitor());
-//		if (visitor1 != null) {
-//			try {
-//				this.service.deleteVisitor(request.getVisitor());
-//				response.setStatusCode(200);
-//				response.setDescription("Visitor Deleted Successfully");
-//				response.setDeleteStatus(true);
-//				return ResponseEntity.ok().body(response);
-//
-//			} catch (Exception e) {
-//				response.setStatusCode(500);
-//				response.setDescription("Visitor Not Deleted");
-//				response.setDeleteStatus(false);
-//				return ResponseEntity.internalServerError().body(response);
-//			}
-//		} else {
-//			response.setStatusCode(404);
-//			response.setDescription("Visitor Not found");
-//			response.setDeleteStatus(false);
-//			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-//		}
-//
-//	}
-//
-//	@GetMapping("/showAllByName/{name}")
-//	public ResponseEntity<VisitorShowAllByNameResponse> f6(@PathVariable(name = "name") String name) {
-//		VisitorShowAllByNameResponse response = new VisitorShowAllByNameResponse();
-//		List<Visitor> visitorBySameName = this.service.getAllVisitorsBySameName(name);
-//		if (visitorBySameName.isEmpty()) {
-//			response.setStatusCode(200);
-//			response.setDescription("There are no visitors with same name");
-//			response.setVisitors(visitorBySameName);
-//		} else {
-//			response.setStatusCode(200);
-//			response.setDescription("There are " + visitorBySameName + " visitors with same name");
-//			response.setVisitors(visitorBySameName);
-//		}
-//		return ResponseEntity.ok(response);
-//	}
-//
-//	public ResponseEntity<VisitorShowAllByCityResponse> f7(@RequestParam(name = "txt_city") String city) {
-//		VisitorShowAllByCityResponse response = new VisitorShowAllByCityResponse();
-//		List<Visitor> visitorByCity = this.service.getVisitorsByCity(city);
-//		if (visitorByCity.isEmpty()) {
-//			response.setStatusCode(200);
-//			response.setDescription("There are no visitors with same city");
-//			response.setVisitors(visitorByCity);
-//		} else {
-//			response.setStatusCode(200);
-//			response.setDescription("There are " + visitorByCity + " visitors with same name");
-//			response.setVisitors(visitorByCity);
-//		}
-//		return ResponseEntity.ok(response);
-//	}
-//}
+
+	@DeleteMapping(value = "/delete")
+	public ResponseEntity<ItemDeleteResponse> f5(@RequestBody ItemDeleteRequest request) {
+		ItemDeleteResponse response = new ItemDeleteResponse();
+		Item item1 = this.service.searchItem(request.getItem());
+		if (item1 != null) {
+			try {
+				this.service.deleteItem(request.getItem());
+				response.setStatusCode(200);
+				response.setDescription("Item Deleted Successfully");
+				response.setDeleteStatus(true);
+				return ResponseEntity.ok().body(response);
+
+			} catch (Exception e) {
+				response.setStatusCode(500);
+				response.setDescription("Item Not Deleted");
+				response.setDeleteStatus(false);
+				return ResponseEntity.internalServerError().body(response);
+			}
+		} else {
+			response.setStatusCode(404);
+			response.setDescription("Item Not found");
+			response.setDeleteStatus(false);
+			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+		}
+
+	}
 
 }
