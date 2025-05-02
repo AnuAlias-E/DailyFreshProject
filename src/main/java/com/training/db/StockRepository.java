@@ -13,5 +13,6 @@ public interface StockRepository extends JpaRepository<Stock, Integer>{
 	@Query("SELECT s FROM Stock s WHERE s.item.itemName = :itemName AND s.location.locationName = :locationName")
     Optional<Stock> findByItemAndLocation(@Param("itemName") String itemName,
                                           @Param("locationName") String locationName);
+	  Optional<Stock> findByItem_ItemId(int itemId);
 
 }

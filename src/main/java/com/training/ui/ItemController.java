@@ -20,7 +20,7 @@ import com.training.db.StockRepository;
 import com.training.dto.request.ItemAddRequest;
 import com.training.dto.request.ItemDeleteRequest;
 import com.training.dto.request.ItemModifyRequest;
-
+import com.training.dto.request.StockUpdateRequest;
 import com.training.dto.response.ItemAddResponse;
 import com.training.dto.response.ItemDeleteResponse;
 import com.training.dto.response.ItemModifyResponse;
@@ -150,11 +150,10 @@ public class ItemController {
 
 	}
 
-	@PostMapping("/stock/update")
-	public ResponseEntity<String> updateStock(@RequestParam String itemName, @RequestParam String locationName,
-			@RequestParam int quantity) throws OutOfStockException {
+	@PutMapping("/stock/update")
+	public ResponseEntity<String> updateStock(@RequestBody StockUpdateRequest request) throws OutOfStockException {
 		try {
-			stockService.updateStock(itemName, locationName, quantity);
+			stockService.updateStock(request.getItemName(), request.getLocationName(), request.getQuantity());
 			return ResponseEntity.ok("Stock updated successfully.");
 		} catch (OutOfStockException e) {
 			return ResponseEntity.badRequest().body("Error: " + e.getMessage());

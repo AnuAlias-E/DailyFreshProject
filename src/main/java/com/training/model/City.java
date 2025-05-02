@@ -42,8 +42,8 @@ public class City {
 	private int cityId;
 	
 	@Column
-	@Nonnull
-	@NotBlank(message = "City Name is Mandatory")
+	//@Nonnull
+	//@NotBlank(message = "City Name is Mandatory")
 	private String name;
 	
 	@OneToMany(mappedBy = "city")

@@ -14,17 +14,17 @@ public class Stock {
     private Integer availableQty;
 
     // Many-to-one relationship with Item
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "item_Id")
     private Item item;
 
     // Many-to-one relationship with Location
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "location_id")
     private Location location;
 
     // Many-to-one relationship with City
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "city_id")
     private City city;
 

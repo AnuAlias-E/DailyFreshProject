@@ -1,61 +1,75 @@
 package com.training.service;
 
-import java.util.List;
-import java.util.Optional;
-
+import com.training.db.ItemRepository;
+import com.training.db.StockRepository;
+import com.training.exception.OutOfStockException;
+import com.training.model.Item;
+import com.training.model.Stock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.training.db.StockRepository;
-import com.training.exception.OutOfStockException;
-import com.training.model.Stock;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class StockService {
-	@Autowired
-StockRepository repo;
-	
-	
-	public List<Stock> getAllStocks() {
-		return repo.findAll();
 
-	}
-	public  List<Stock> saveAll(List<Stock> stockList) throws OutOfStockException {
+    @Autowired
+    private StockRepository stockRepository;
 
-		for (Stock stock : stockList) {
-            if (stock.getStockId() == 0) {
-            	repo.save(stock); // new stock
+    @Autowired
+    private ItemRepository itemRepository;
+
+    // ───────────────────────────────
+    // Get All Stocks
+    // ───────────────────────────────
+    public List<Stock> getAllStocks() {
+        return stockRepository.findAll();
+    }
+
+    // ───────────────────────────────
+    // Save or Update Stock List
+    // ───────────────────────────────
+    public List<Stock> saveAll(List<Stock> stockList) throws OutOfStockException {
+        for (Stock stock : stockList) {
+            int itemId = stock.getItem().getItemId();
+
+            // Check if the item exists
+            Optional<Item> itemOptional = itemRepository.findById(itemId);
+            if (itemOptional.isEmpty()) {
+                throw new OutOfStockException("Item with ID " + itemId + " not found.");
+            }
+
+            // Set the actual item entity
+            stock.setItem(itemOptional.get());
+
+            // Check for existing stock
+            Optional<Stock> existingStockOpt = stockRepository.findByItem_ItemId(itemId);
+            if (existingStockOpt.isPresent()) {
+                Stock existingStock = existingStockOpt.get();
+                existingStock.setAvailableQty(stock.getAvailableQty());
+                existingStock.setCity(stock.getCity());
+                existingStock.setLocation(stock.getLocation());
+                stockRepository.save(existingStock);
             } else {
-                Optional<Stock> existing = repo.findById(stock.getStockId());
-                if (existing.isPresent()) {
-                    Stock existingStock = existing.get();
-                    existingStock.setAvailableQty(stock.getAvailableQty());
-                    existingStock.setItem(stock.getItem());
-                    existingStock.setLocation(stock.getLocation());
-                    existingStock.setCity(stock.getCity());
-                    repo.save(existingStock);
-                } else {
-                    throw new OutOfStockException("Stock with ID " + stock.getStockId() + " not found.");
-                }
+                stockRepository.save(stock);
             }
         }
-		return stockList;
+        return stockList;
+    }
 
-	}
-	
-   
-
+    // ───────────────────────────────
+    // Update Stock Quantity (Reduce)
+    // ───────────────────────────────
     public void updateStock(String itemName, String locationName, int quantityToReduce) throws OutOfStockException {
-        Stock stock = repo.findByItemAndLocation(itemName, locationName)
-                .orElseThrow(() -> new RuntimeException("Stock not found for item '" + itemName + "' at location '" + locationName + "'"));
+        Stock stock = stockRepository.findByItemAndLocation(itemName, locationName)
+                .orElseThrow(() -> new OutOfStockException("Stock not found for item '" + itemName + "' at location '" + locationName + "'"));
 
         if (stock.getAvailableQty() < quantityToReduce) {
             throw new OutOfStockException("Insufficient stock for item '" + itemName + "'");
         }
 
         stock.setAvailableQty(stock.getAvailableQty() - quantityToReduce);
-        repo.save(stock);
+        stockRepository.save(stock);
     }
 }
-	
-
